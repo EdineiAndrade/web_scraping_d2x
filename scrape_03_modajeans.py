@@ -170,7 +170,10 @@ def scrape_modajeans(base_url):
                 #url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/kit-2-salopetes-destroyed-estampas-moda-descolada-em-par/'
                 page.goto(url_product)
                 time.sleep(.5)
-                esgotado = page.locator('//*[@id="single-product"]/div/div/div[1]/div/div[2]/div[1]/div[1]/div').get_attribute('style')
+                try:
+                    esgotado = page.locator('//*[@id="single-product"]/div/div/div[1]/div/div[2]/div[1]/div[1]/div').get_attribute('style')
+                except:
+                    esgotado = 'display:none'
                 if esgotado is None or 'display:none' not in esgotado:
                     continue
                 product_data = extract_product_data(page, url_product,nome_categiria)
