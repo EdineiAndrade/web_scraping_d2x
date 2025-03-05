@@ -17,7 +17,11 @@ def extract_product_data(page,nome_categiria):
         sku = page.locator('//*[@id="inc_sku"]/meta').get_attribute('content')
         categoria = nome_categiria.title()
         print(f"Processando categoria: {categoria} | produto:{produto}")
-        codigo = page.locator('//*[@class="codigo_produto"]/span').inner_text().replace('Cód.: ','')
+        try:
+            marca = page.locator('(//*[@class="codigo_produto"]/span)[2]').inner_text()
+        except:
+            marca = ""
+        codigo = page.locator('(//*[@class="codigo_produto"]/span)[1]').inner_text().replace('Cód.: ','')
         preco = page.locator('//*[@class="valor"]/span').inner_text().replace('R$','')
         imagem = page.query_selector_all('//*[@class="slick-track"]/div/img')
         lista_imagens = list(map(lambda link: link.get_attribute('src'), imagem))     
@@ -54,6 +58,7 @@ def extract_product_data(page,nome_categiria):
             "Tipo": "variable",
             "GTIN UPC EAN ISBN": "",
             'Nome': produto,
+            'Marca': marca,
             "Publicado": 1,
             "Em Destaque": 0,
             "Visibilidade no Catálogo": "visible",
