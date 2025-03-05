@@ -167,7 +167,6 @@ def scrape_modajeans(base_url):
                 continue
 
             for url_product in product_urls:
-                url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/conjunto-de-malha-com-saia-preto-delicadeza-e-versatilidade/'
                 page.goto(url_product)
                 time.sleep(.5)
                 try:
