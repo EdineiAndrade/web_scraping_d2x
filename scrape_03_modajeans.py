@@ -13,8 +13,8 @@ def save_to_sheets(data):
 # Função para extrair dados de um produto na página de detalhes
 def extract_product_data(page, url_product,nome_categiria):
     try:
-        page.goto(url_product)
-        time.sleep(1)
+        #page.goto(url_product)
+        time.sleep(.5)
         # Extrair informações usando os seletores fornecidos
         produto = url_product.split('/')[-2].replace('-',' ').title()
         titulo = page.locator('//*[@class="page-header  "]//h1').inner_text().replace('SKU - ','')
@@ -157,7 +157,6 @@ def scrape_modajeans(base_url):
         categorias = page.query_selector_all('//*[@class="js-accordion-container "]//li/a')
         urls_categoria = list(map(lambda link: link.get_attribute('href'), categorias))
         for url_categoria in urls_categoria:
-            #url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/short-jeans-com-barra-desfiada/'
             nome_categiria = url_categoria.split('/')[-2].title()
             page.goto(f"{url_categoria}?mpage=4") #?mpage=4
             time.sleep(1)
@@ -168,7 +167,12 @@ def scrape_modajeans(base_url):
                 continue
 
             for url_product in product_urls:
-                
+                #url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/kit-2-salopetes-destroyed-estampas-moda-descolada-em-par/'
+                page.goto(url_product)
+                time.sleep(.5)
+                esgotado = page.locator('//*[@id="single-product"]/div/div/div[1]/div/div[2]/div[1]/div[1]/div').get_attribute('style')
+                if esgotado is None or 'display:none' not in esgotado:
+                    continue
                 product_data = extract_product_data(page, url_product,nome_categiria)
                 df_tamanhos = product_data[0]
                 df_cores = product_data[1]
@@ -217,9 +221,9 @@ def scrape_modajeans(base_url):
                 df_final = df_final.fillna("")
                 cont = cont + 1
                 if cont >= 20:
-                    time.sleep(1)
+                    time.sleep(.3)
                     save_to_sheets(df_final)
-                    time.sleep(1)
+                    time.sleep(.3)
                     cont = 0
         browser.close()
 
