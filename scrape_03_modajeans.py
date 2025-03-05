@@ -69,7 +69,7 @@ def extract_product_data(page, url_product,nome_categiria):
         }, label_tamanho)) 
 
         tamanhos = [item['Valores do Atributo 1'] for item in list_tamanhos]
-        if tamanhos[0] == 'Único (36 ao 42)':
+        if 'Ùnico' in tamanhos[0].title():
                 list_tamanhos = list(map(lambda tamanho: {
                     "Valores do Atributo 1": tamanho, 
                     "Estoque": 1
@@ -167,7 +167,7 @@ def scrape_modajeans(base_url):
                 continue
 
             for url_product in product_urls:
-                #url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/kit-2-salopetes-destroyed-estampas-moda-descolada-em-par/'
+                url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/conjunto-de-malha-com-saia-preto-delicadeza-e-versatilidade/'
                 page.goto(url_product)
                 time.sleep(.5)
                 try:
@@ -223,7 +223,7 @@ def scrape_modajeans(base_url):
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 cont = cont + 1
-                if cont >= 20:
+                if cont >= 1:
                     time.sleep(.3)
                     save_to_sheets(df_final)
                     time.sleep(.3)
