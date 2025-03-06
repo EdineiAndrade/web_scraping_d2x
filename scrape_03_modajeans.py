@@ -23,6 +23,8 @@ def extract_product_data(page, url_product,nome_categiria):
         print(f"Processando categoria: {categoria} | produto:{produto}")
         codigo = page.locator('//*[@class="page-header  "]//h1').get_attribute('data-store').replace('product-name-','')
         preco = page.locator('//*[@id="price_display"]').inner_text().replace('R$','')
+        preco = round(float(preco.replace(',', '.')), 2)
+        preco_venda = round((preco * 1.1),2)
         imagem = page.query_selector_all('//*[@class="swiper-wrapper"]//img')
         lista_imagens = list(map(lambda link: "https:" + link.get_attribute('srcset').split(',')[-1].split()[0] 
                          if link.get_attribute('srcset') else "", imagem))
@@ -102,7 +104,8 @@ def extract_product_data(page, url_product,nome_categiria):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço": preco,
+            "Preço de Custo": preco,
+            "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
             "Classe de Entrega": "",

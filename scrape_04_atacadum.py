@@ -25,6 +25,8 @@ def extract_product_data(page,nome_categiria):
         codigo = page.locator('(//*[@class="codigo_produto"]/span)[1]').inner_text().replace('Cód.: ','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
         preco = page.locator('//*[@class="valor"]/span[1]').inner_text().replace('R$','')
+        preco = round(float(preco.replace(',', '.')), 2)
+        preco_venda = round((preco * 1.1),2)
         imagem = page.query_selector_all('//*[@class="slick-track"]/div/img')
         lista_imagens = list(map(lambda link: link.get_attribute('src'), imagem))     
         lista_sem_duplicatas = list(set(lista_imagens))
@@ -82,7 +84,8 @@ def extract_product_data(page,nome_categiria):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço": preco,
+            "Preço de Custo": preco,
+            "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
             "Classe de Entrega": "",

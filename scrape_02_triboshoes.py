@@ -22,6 +22,8 @@ def extract_product_data(page, url_product,nome_categiria):
         codigo = url_product.split("-")[-1].replace('.html','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
         preco = page.locator('(//*[@class="list-unstyled"])[6]/li/h2').inner_text().replace('R$','')
+        preco = round(float(preco.replace(',', '.')), 2)
+        preco_venda = round((preco * 1.1),2)
         description = page.locator('div#tab-description').inner_text().replace('\n','')
         imagem = page.query_selector_all('//*[@class="thumbnails"]//a')
         lista_imagens = list(map(lambda link: link.get_attribute('href'), imagem))
@@ -70,7 +72,8 @@ def extract_product_data(page, url_product,nome_categiria):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço": preco,
+            "Preço de Custo": preco,
+            "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
             "Classe de Entrega": "",

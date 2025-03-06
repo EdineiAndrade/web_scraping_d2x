@@ -33,6 +33,8 @@ def extract_product_data(page, url_product):
 
         preco = float(page.query_selector('#sale_value').get_attribute("value"))
         preco = locale.format_string("%.2f", preco, grouping=True)
+        preco = round(float(preco.replace(',', '.')), 2)
+        preco_venda = round((preco * 1.1),2)
         estoque = page.query_selector('#stock').get_attribute("value")
         peso = page.query_selector('#weight').get_attribute("value") 
         altura = int(float(page.query_selector('#height').get_attribute("value")) * 100)
@@ -75,7 +77,8 @@ def extract_product_data(page, url_product):
             "Permitir Avaliações de Clientes": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço": preco,
+            "Preço de Custo": preco,
+            "Preço de Venda": preco_venda,
             "Categorias": "",
             "Tags": "",
             "Classe de Entrega": "",
