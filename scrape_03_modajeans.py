@@ -50,7 +50,7 @@ def extract_product_data(page, url_product,nome_categiria):
                 cores = [item['Valores do Atributo 2'] for item in lista_cores]
                 cores_str = ", ".join(cores)
                 df_cores = pd.DataFrame(lista_cores)
-                cor = "Cor Personalizada"
+                cor = "Cor"
                 atributo_global_2 = 1
                 cor_padrao = cores[0]
             else:
@@ -69,16 +69,7 @@ def extract_product_data(page, url_product,nome_categiria):
         }, label_tamanho)) 
 
         tamanhos = [item['Valores do Atributo 1'] for item in list_tamanhos]
-        if 'Ùnico' in tamanhos[0].title():
-                list_tamanhos = list(map(lambda tamanho: {
-                    "Valores do Atributo 1": tamanho, 
-                    "Estoque": 1
-                }, range(36, 43)))
-                tamanhos = [item['Valores do Atributo 1'] for item in list_tamanhos]
-                tamanhos_str = ", ".join(map(str, tamanhos))
-        else:
-            tamanhos_str = ", ".join(tamanhos)
-        
+        tamanhos_str = ", ".join(tamanhos)        
         df_tamanhos = pd.DataFrame(list_tamanhos)
         df_tamanhos["Valores do Atributo 1"] = df_tamanhos["Valores do Atributo 1"].astype(str)
         tamanho_meio = tamanhos_str.split(",")[int(len(tamanhos_str.split(","))/2)-1].replace("'","").replace('"','').replace(' ','')
@@ -167,6 +158,7 @@ def scrape_modajeans(base_url):
                 continue
 
             for url_product in product_urls:
+                #url_product = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/conjunto-de-malha-com-saia-preto-delicadeza-e-versatilidade/'
                 page.goto(url_product)
                 time.sleep(.5)
                 try:
@@ -180,7 +172,7 @@ def scrape_modajeans(base_url):
                 df_cores = product_data[1]
                 df_produto = pd.DataFrame([product_data[2]])                
                 # Explodir a coluna "Valores do Atributo 1"
-                if len(df_cores) <= 1: 
+                if len(df_cores) <= 1 and len(df_tamanhos)>1: 
                     coluna_atributo = "Valores do Atributo 1"
                     df_explodido = df_produto.explode(coluna_atributo).reset_index(drop=True) 
                     if df_explodido[coluna_atributo].apply(lambda x: any(item in {'P', 'M', 'G', 'GG'} for item in x)).any():
@@ -192,32 +184,45 @@ def scrape_modajeans(base_url):
                         lambda x: ast.literal_eval(x)
                     )
                     df_explodido = df_explodido.explode(coluna_atributo).reset_index(drop=True)
+                    
+                elif len(df_cores) <= 1 and len(df_tamanhos)<=1:
+
+                    df_explodido = df_produto.explode("Valores do Atributo 1").reset_index(drop=True)
+                
                 else:
                     coluna_atributo = "Valores do Atributo 2"
                     df_explodido = df_produto.explode(coluna_atributo).reset_index(drop=True)
                     df_explodido[coluna_atributo] = df_explodido[coluna_atributo].str.split(", ")
                     df_explodido = df_explodido.explode(coluna_atributo, ignore_index=True)
+                                        
                 df_explodido = df_explodido.drop(columns=["Estoque"])
                 df_explodido["Tipo"] = "variation"  
                 df_explodido[
-                    ["Descrição","Peso (kg)","Comprimento (cm)","Largura (cm)",
-                     "Altura (cm)","Categorias","Visibilidade do Atributo 1","Atributo Padrão 1",
-                     "Quantidade Baixa de Estoque","Imagens"]
-                                 ] = None
+                        ["Descrição","Peso (kg)","Comprimento (cm)","Largura (cm)",
+                        "Altura (cm)","Categorias","Visibilidade do Atributo 1","Atributo Padrão 1",
+                        "Quantidade Baixa de Estoque","Imagens"]
+                                    ] = None
                 df_produto[
-                        ["Classe de Imposto","Ascendente","Preço"]
-                               ] = None
+                            ["Classe de Imposto","Ascendente","Preço"]
+                                ] = None
                 df_explodido["Permitir avaliações de clientes?"] = 0
                 df_explodido["Posição"] = df_explodido.index + 1
                 df_explodido["ID"] = df_explodido["ID"].astype(str) + df_explodido["Posição"].astype(str)
-                df_ref = df_tamanhos if coluna_atributo == "Valores do Atributo 1" else df_cores
-                df_final = df_explodido.merge(
-                    df_ref[[coluna_atributo, "Estoque"]],
-                    on=coluna_atributo,
-                    how="left"
-                )
-                df_final["Em Estoque"] = df_final["Estoque"]     
-                df_final = pd.concat([df_produto, df_final], ignore_index=True)
+                
+                if len(df_cores) <= 1 and len(df_tamanhos)<=1:
+                   df_final = df_produto 
+                   df_final["Tipo"] = "simple"   
+                else:
+                    df_ref = df_tamanhos if coluna_atributo == "Valores do Atributo 1" else df_cores
+                    df_final = df_explodido.merge(
+                            df_ref[[coluna_atributo, "Estoque"]],
+                            on=coluna_atributo,
+                            how="left"
+                        )    
+                    df_final["Em Estoque"] = df_final["Estoque"]     
+                    df_final["Tipo"] = "variation"
+                    df_final = pd.concat([df_produto, df_final], ignore_index=True)  
+                
                 products_data.append(df_final)
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")

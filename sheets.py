@@ -4,8 +4,13 @@ from google.oauth2.service_account import Credentials
 
 def get_credentials_file():  
 
-    return os.path.join("C:\\sh", "credentials.json")
-
+    return os.path.join("C:\\sh", "credentials.json") 
+def get_id_sheet_file():  
+    caminho = r"C:\sh\id_sheet.txt"  # Caminho correto
+    if os.path.exists(caminho):
+        with open(caminho, "r", encoding="utf-8") as arquivo:
+            linha = arquivo.readline().strip()  # Lê a primeira linha e remove espaços extras
+            return linha
 def authenticate_google_sheets():  
     #Autentica no Google Sheets e retorna o cliente gspread.    
     credentials_file = get_credentials_file()
@@ -19,7 +24,7 @@ def authenticate_google_sheets():
     return gspread.authorize(credentials)
 
 def save_to_google_sheets(data, numero_sheet):    
-    sheet_id = "1TFmVRbu-pt2qQCfq7qisU2gWPZm3pJ1q48NeL4DMVFs"  # ID da planilha
+    sheet_id = get_id_sheet_file()  # ID da planilha
     client = authenticate_google_sheets()
     sheet = client.open_by_key(sheet_id).get_worksheet(numero_sheet)  # Abre a terceira aba
     

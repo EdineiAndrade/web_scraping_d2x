@@ -2,6 +2,7 @@ from sheets import save_to_google_sheets
 from playwright.sync_api import sync_playwright
 import pandas as pd
 import time
+import re
 
 # Função para salvar os dados em um arquivo Excel
 def save_to_sheets(data):    
@@ -11,18 +12,19 @@ def save_to_sheets(data):
 def extract_product_data(page,nome_categiria):
     try:
         #page.goto(url_product)
-        time.sleep(.5)
+        time.sleep(2)
         # Extrair informações usando os seletores fornecidos
         produto = page.locator('//*[@class="detalhes"]/h3').inner_text().title()
         sku = page.locator('//*[@id="inc_sku"]/meta').get_attribute('content')
         categoria = nome_categiria.title()
         print(f"Processando categoria: {categoria} | produto:{produto}")
         try:
-            marca = page.locator('(//*[@class="codigo_produto"]/span)[2]').inner_text()
+            marca = page.locator('(//*[@class="codigo_produto"]/span)[2]').inner_text(timeout=200)
         except:
             marca = ""
         codigo = page.locator('(//*[@class="codigo_produto"]/span)[1]').inner_text().replace('Cód.: ','')
-        preco = page.locator('//*[@class="valor"]/span').inner_text().replace('R$','')
+        codigo = int("".join(re.findall(r'\d+', codigo)))
+        preco = page.locator('//*[@class="valor"]/span[1]').inner_text().replace('R$','')
         imagem = page.query_selector_all('//*[@class="slick-track"]/div/img')
         lista_imagens = list(map(lambda link: link.get_attribute('src'), imagem))     
         lista_sem_duplicatas = list(set(lista_imagens))
@@ -138,8 +140,9 @@ def scrape_atacadum(base_url):
                 continue
 
             for url_product in product_urls:
+                #url_product = 'smartwatch-n9-pro-serie-10-47mm-pulseira-extra-lancamento/'
                 page.goto(f"{base_url}{url_product}")
-                time.sleep(.5)                
+                time.sleep(2)                
                 product_data = extract_product_data(page,nome_categiria)
             
                 df_produto = pd.DataFrame([product_data])                
