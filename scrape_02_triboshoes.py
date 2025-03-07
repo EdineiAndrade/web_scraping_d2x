@@ -21,7 +21,7 @@ def extract_product_data(page, url_product,nome_categiria):
         print(f"Processando categoria: {categoria} | produto:{produto}")
         codigo = url_product.split("-")[-1].replace('.html','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
-        preco = page.locator('(//*[@class="list-unstyled"])[6]/li/h2').inner_text().replace('R$','')
+        preco = page.locator('(//*[@class="list-unstyled"])[6]/li/h2').inner_text().replace('R$','').replace('.','')
         preco = round(float(preco.replace(',', '.')), 2)
         preco_venda = round((preco * 1.1),2)
         description = page.locator('div#tab-description').inner_text().replace('\n','')
@@ -97,7 +97,8 @@ def extract_product_data(page, url_product,nome_categiria):
             "Valores do Atributo 2": "",
             "Visibilidade do Atributo 2": 0,
             "Atributo Global 2": "",
-            "Atributo Padrão 2": ""
+            "Atributo Padrão 2": "",
+            "Galpão": " Galpão 2"
         }]
 
     except Exception as e:

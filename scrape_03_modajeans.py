@@ -22,7 +22,7 @@ def extract_product_data(page, url_product,nome_categiria):
         categoria = nome_categiria.title()
         print(f"Processando categoria: {categoria} | produto:{produto}")
         codigo = page.locator('//*[@class="page-header  "]//h1').get_attribute('data-store').replace('product-name-','')
-        preco = page.locator('//*[@id="price_display"]').inner_text().replace('R$','')
+        preco = page.locator('//*[@id="price_display"]').inner_text().replace('R$','').replace('.','')
         preco = round(float(preco.replace(',', '.')), 2)
         preco_venda = round((preco * 1.1),2)
         imagem = page.query_selector_all('//*[@class="swiper-wrapper"]//img')
@@ -129,7 +129,8 @@ def extract_product_data(page, url_product,nome_categiria):
             "Valores do Atributo 2": cores_str,
             "Visibilidade do Atributo 2": 0,
             "Atributo Global 2": atributo_global_2,
-            "Atributo Padrão 2": cor_padrao
+            "Atributo Padrão 2": cor_padrao,
+            "Galpão": " Galpão 3"
         }]
 
 

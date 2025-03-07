@@ -24,7 +24,7 @@ def extract_product_data(page,nome_categiria):
             marca = ""
         codigo = page.locator('(//*[@class="codigo_produto"]/span)[1]').inner_text().replace('Cód.: ','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
-        preco = page.locator('//*[@class="valor"]/span[1]').inner_text().replace('R$','')
+        preco = page.locator('//*[@class="valor"]/span[1]').inner_text().replace('R$','').replace('.','')
         preco = round(float(preco.replace(',', '.')), 2)
         preco_venda = round((preco * 1.1),2)
         imagem = page.query_selector_all('//*[@class="slick-track"]/div/img')
@@ -32,14 +32,21 @@ def extract_product_data(page,nome_categiria):
         lista_sem_duplicatas = list(set(lista_imagens))
         lista_imagens = ", ".join(lista_sem_duplicatas)
          
+        # Cria o DataFrame imagem
+        if len(lista_sem_duplicatas) >0:
+            df_imagens = pd.DataFrame(lista_sem_duplicatas)
+            df_imagens = df_imagens.transpose()
+            df_imagens.columns = [f'Imagem {i+1}' for i in range(len(df_imagens.columns))]
+        else:
+            df_imagens =""
         # Captura todos os <p> que vêm depois do elemento com data-store contendo 'product-description-'
         paragraphs = page.query_selector_all('//*[@class="descricao"]/div//p')
         # Usa lambda para extrair os textos dos <p> encontrados
         paragraph_texts = list(map(lambda p: p.inner_text(), paragraphs))
         lista_limpa = [item.replace('\n', ' ').strip() for item in paragraph_texts]
         description = " ".join([item for item in lista_limpa if item.strip()])
-        variavel_cor = page.locator('//*[@class="cores"]/div[1]').inner_text()
         try:
+            variavel_cor = page.locator('//*[@class="cores"]/div[1]').inner_text(timeout=200)
                 #variação de cor
             if "COR" in variavel_cor:
                 variacao_cor = page.query_selector_all('//*[@class="cores"]/div[2]/div')
@@ -55,7 +62,7 @@ def extract_product_data(page,nome_categiria):
             print(f"Erro ao extrair dados do produto: {e}")
             atributo_global_1 = cor_padrao = cores_str = cor = ""        
         
-        return {
+        return [df_imagens,{
             'ID': codigo,
             'SKU':sku,
             'Preço promocional': 0,
@@ -109,8 +116,9 @@ def extract_product_data(page,nome_categiria):
             "Valores do Atributo 2": "",
             "Visibilidade do Atributo 2": 0,
             "Atributo Global 2": "",
-            "Atributo Padrão 2": ""
-        }
+            "Atributo Padrão 2": "",
+            "Galpão": " Galpão 4"
+        }]
 
 
     except Exception as e:
@@ -128,10 +136,10 @@ def scrape_atacadum(base_url):
         cont = 0
         products_data = []
         # Definição do caminho do arquivo
-        categoria_ofertas = page.locator('(//*[@class="categorias_desk"]/li/a)[1]').get_attribute('href')
+        #categoria_ofertas = page.locator('(//*[@class="categorias_desk"]/li/a)[1]').get_attribute('href')
         categorias = page.query_selector_all('//*[@class="categorias_desk"]/li/div/ul/li/a')
         urls_categoria = list(map(lambda link: link.get_attribute('href'), categorias))
-        urls_categoria.insert(0, categoria_ofertas)
+        #urls_categoria.insert(0, categoria_ofertas)
         for url_categoria in urls_categoria:
             nome_categiria = url_categoria[:-1].replace('/','>').replace('-',' ').title()
             page.goto(f"{base_url}{url_categoria}")
@@ -143,37 +151,46 @@ def scrape_atacadum(base_url):
                 continue
 
             for url_product in product_urls:
-                #url_product = 'smartwatch-n9-pro-serie-10-47mm-pulseira-extra-lancamento/'
+                url_product = 'smartwatch-w69-ultra-mini-45mm-com-pulseira-extra-e-case-bussola-nfc-temperatura-corporal-jogos/'
                 page.goto(f"{base_url}{url_product}")
                 time.sleep(2)                
                 product_data = extract_product_data(page,nome_categiria)
-            
-                df_produto = pd.DataFrame([product_data])                
-                
-                df_explodido = df_produto.explode("Valores do Atributo 1").reset_index(drop=True)
-                df_explodido["Valores do Atributo 1"] = df_explodido["Valores do Atributo 1"].str.split(", ")
-                df_explodido = df_explodido.explode("Valores do Atributo 1", ignore_index=True)  
-                df_explodido = df_explodido.drop(columns=["Estoque"])
-                df_explodido["Tipo"] = "variation"  
-                df_explodido[
-                    ["Descrição","Peso (kg)","Comprimento (cm)","Largura (cm)",
-                     "Altura (cm)","Categorias","Visibilidade do Atributo 1","Atributo Padrão 1",
-                     "Quantidade Baixa de Estoque","Imagens"]
-                                 ] = None                                 
-                df_produto[
-                        ["Classe de Imposto","Ascendente","Preço"]
-                               ] = None
-                df_explodido["Permitir avaliações de clientes?"] = 0
-                df_explodido["Posição"] = df_explodido.index + 1
-                df_explodido["ID"] = df_explodido["ID"].astype(str) + df_explodido["Posição"].astype(str)
-                #merge                                
-                   
-                df_final = pd.concat([df_produto, df_explodido], ignore_index=True)
+                df_imagens = product_data[0]
+                df_produto = pd.DataFrame([product_data[1]])     
+                         
+                if len(df_imagens) >0:
+                    df_produto = pd.concat([df_produto, df_imagens], axis=1)
+
+                if df_produto["Valores do Atributo 1"].str.contains(',').any():
+                    df_explodido = df_produto.explode("Valores do Atributo 1").reset_index(drop=True)
+                    df_explodido["Valores do Atributo 1"] = df_explodido["Valores do Atributo 1"].str.split(", ")
+                    df_explodido = df_explodido.explode("Valores do Atributo 1", ignore_index=True)  
+                    df_explodido = df_explodido.drop(columns=["Estoque"])
+                    df_explodido["Tipo"] = "variation"  
+                    df_explodido[
+                        ["Descrição","Peso (kg)","Comprimento (cm)","Largura (cm)",
+                        "Altura (cm)","Categorias","Visibilidade do Atributo 1","Atributo Padrão 1",
+                        "Quantidade Baixa de Estoque","Imagens"]
+                                ] = ""                                 
+                    df_produto[
+                            ["Classe de Imposto","Ascendente","Preço de Custo","Preço de Venda"]
+                                ] = ""
+                    df_explodido["Permitir avaliações de clientes?"] = 0
+                    df_explodido["Posição"] = df_explodido.index + 1
+                    df_explodido["ID"] = df_explodido["ID"].astype(str) + df_explodido["Posição"].astype(str)
+                    #merge                                
+                    if len(df_imagens) > 0:
+                        numero_imagens = df_imagens.shape[1]
+                        df_explodido.iloc[:, -numero_imagens:] = ""
+                    df_final = pd.concat([df_produto, df_explodido], ignore_index=True)
+                else:
+                    df_final = df_produto
+                    df_final["Tipo"] = "simple" 
                 products_data.append(df_final)
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 cont = cont + 1
-                if cont >= 20:
+                if cont >= 1:
                     time.sleep(.3)
                     save_to_sheets(df_final)
                     time.sleep(.3)

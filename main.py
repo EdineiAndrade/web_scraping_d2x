@@ -7,6 +7,11 @@ from sheets import save_to_google_sheets
 
 if __name__ == "__main__":
 
+    base_url = 'https://app.gruposhopmix.com.br/login'
+    data = scrape_gruposhopmix(base_url)
+    save_to_google_sheets(data,0)
+    print("Finalizado web scraping gruposhopmix")
+    
     # base_url = 'https://www.atacadum.com.br/'  
     # data = scrape_atacadum(base_url)
     # save_to_google_sheets(data, 3)
@@ -22,9 +27,5 @@ if __name__ == "__main__":
     # save_to_google_sheets(data,1)    
     # print("Finalizado web scraping triboshoes")
 
-    # base_url = 'https://app.gruposhopmix.com.br/login'
-    # data = scrape_gruposhopmix(base_url)
-    # save_to_google_sheets(data,0)
-    # print("Finalizado web scraping gruposhopmix")
      
     

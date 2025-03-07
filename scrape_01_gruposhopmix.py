@@ -31,9 +31,8 @@ def extract_product_data(page, url_product):
         ean = page.query_selector('#ean').get_attribute("value")
         ncm = page.query_selector('#ncm').get_attribute("value")   
 
-        preco = float(page.query_selector('#sale_value').get_attribute("value"))
-        preco = locale.format_string("%.2f", preco, grouping=True)
-        preco = round(float(preco.replace(',', '.')), 2)
+        preco = page.query_selector('#sale_value').get_attribute("value")
+        preco = round(float(preco), 2)
         preco_venda = round((preco * 1.1),2)
         estoque = page.query_selector('#stock').get_attribute("value")
         peso = page.query_selector('#weight').get_attribute("value") 
@@ -43,10 +42,19 @@ def extract_product_data(page, url_product):
         description = page.query_selector('#description').input_value().replace('\n','')
 
         
-        imagens = list(map(lambda el: el.get_attribute("src"), page.query_selector_all('//*[@id="render_images"]/div/img')))
-        lista_imagens = ", ".join(map(str, imagens))
+        lista_imagens = list(map(lambda el: el.get_attribute("src"), page.query_selector_all('//*[@id="render_images"]/div/img')))
+        lista_imagens_str = ", ".join(map(str, lista_imagens))
+        lista_sem_duplicatas = set(lista_imagens)
+
+        # Cria o DataFrame imagem
+        if len(lista_sem_duplicatas) >0:
+            df_imagens = pd.DataFrame(lista_sem_duplicatas)
+            df_imagens = df_imagens.transpose()
+            df_imagens.columns = [f'Imagem {i+1}' for i in range(len(df_imagens.columns))]
+        else:
+            df_imagens =""
         
-        return {
+        return [df_imagens,{
             'Categoria': categoria,
             'ID': codigo,
             'SKU': sku,
@@ -82,7 +90,7 @@ def extract_product_data(page, url_product):
             "Categorias": "",
             "Tags": "",
             "Classe de Entrega": "",
-            "Imagens": lista_imagens,
+            "Imagens": lista_imagens_str,
             "Limite de Downloads": "",
             "Dias para Expirar o Download": "",
             "Ascendente": "",
@@ -102,8 +110,9 @@ def extract_product_data(page, url_product):
             "Valores do Atributo 2": "",
             "Visibilidade do Atributo 2": 0,
             "Atributo Global 2": "",
-            "Atributo Padrão 2": ""
-        }
+            "Atributo Padrão 2": "",
+            "Galpão": " Galpão 1"
+        }]
     except Exception as e:
         print(f"Erro ao extrair dados do produto: {e}")
         return None
@@ -143,13 +152,17 @@ def scrape_gruposhopmix(base_url):
                 print(f"Processando categoria: {url_product}")
                 #url_product = "https://app.gruposhopmix.com.br/dashboard/product/create/152"
                 product_data = extract_product_data(page, url_product)
-                products_data.append(product_data)
+                df_imagens = product_data[0]
+                df_produto = pd.DataFrame([product_data[1]])
+                if len(df_imagens) >0:
+                    df_produto = pd.concat([df_produto, df_imagens], axis=1)
                 cont = cont + 1
-                if cont >= 1:
-                    time.sleep(1)
-                    save_to_sheets(products_data)
-                    time.sleep(1)
-                    cont = 0
+                products_data.append(product_data)
+                if cont >= 20:
+                        time.sleep(1)
+                        save_to_sheets(df_produto)
+                        time.sleep(1)
+                        cont = 0
         browser.close()
 
         return products_data
