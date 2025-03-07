@@ -157,10 +157,13 @@ def scrape_gruposhopmix(base_url):
                 if len(df_imagens) >0:
                     df_produto = pd.concat([df_produto, df_imagens], axis=1)
                 cont = cont + 1
-                products_data.append(product_data)
-                if cont >= 20:
+                products_data.append(df_produto)
+                df_final = pd.concat(products_data, ignore_index=True)
+                df_final = df_final.fillna("")
+                
+                if cont >= 1:
                         time.sleep(1)
-                        save_to_sheets(df_produto)
+                        save_to_sheets(df_final)
                         time.sleep(1)
                         cont = 0
         browser.close()
