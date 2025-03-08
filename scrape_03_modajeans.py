@@ -34,6 +34,14 @@ def extract_product_data(page, url_product,nome_categiria):
         lista_sem_duplicatas = list(set(lista_filtrada))
         lista_imagens = ", ".join(lista_sem_duplicatas)
          
+         # Cria o DataFrame imagem
+        if len(lista_sem_duplicatas) >0:
+            df_imagens = pd.DataFrame(lista_sem_duplicatas)
+            df_imagens = df_imagens.transpose()
+            df_imagens.columns = [f'Imagem {i+1}' for i in range(len(df_imagens.columns))]
+        else:
+            df_imagens =""
+
         # Captura todos os <p> que vêm depois do elemento com data-store contendo 'product-description-'
         paragraphs = page.query_selector_all('//*[@data-store[contains(., "product-description-")]]//p')
         # Usa lambda para extrair os textos dos <p> encontrados
@@ -76,7 +84,7 @@ def extract_product_data(page, url_product,nome_categiria):
         df_tamanhos["Valores do Atributo 1"] = df_tamanhos["Valores do Atributo 1"].astype(str)
         tamanho_meio = tamanhos_str.split(",")[int(len(tamanhos_str.split(","))/2)-1].replace("'","").replace('"','').replace(' ','')
     
-        return [df_tamanhos,df_cores,{
+        return [df_tamanhos,df_cores,df_imagens,{
             'ID': codigo,
             'SKU':sku,
             'Preço promocional': 0,
@@ -174,7 +182,11 @@ def scrape_modajeans(base_url):
                 product_data = extract_product_data(page, url_product,nome_categiria)
                 df_tamanhos = product_data[0]
                 df_cores = product_data[1]
-                df_produto = pd.DataFrame([product_data[2]])                
+                df_imagens = product_data[2]               
+                df_produto = pd.DataFrame([product_data[3]])    
+
+                if len(df_imagens) >0:
+                    df_produto = pd.concat([df_produto, df_imagens], axis=1)           
                 # Explodir a coluna "Valores do Atributo 1"
                 if len(df_cores) <= 1 and len(df_tamanhos)>1: 
                     coluna_atributo = "Valores do Atributo 1"
@@ -200,6 +212,9 @@ def scrape_modajeans(base_url):
                     df_explodido = df_explodido.explode(coluna_atributo, ignore_index=True)
                                         
                 df_explodido = df_explodido.drop(columns=["Estoque"])
+                if len(df_imagens) > 0:
+                        numero_imagens = df_imagens.shape[1]
+                        df_explodido.iloc[:, -numero_imagens:] = ""
                 df_explodido["Tipo"] = "variation"  
                 df_explodido[
                         ["Descrição","Peso (kg)","Comprimento (cm)","Largura (cm)",
@@ -207,7 +222,7 @@ def scrape_modajeans(base_url):
                         "Quantidade Baixa de Estoque","Imagens"]
                                     ] = None
                 df_produto[
-                            ["Classe de Imposto","Ascendente","Preço"]
+                            ["Classe de Imposto","Ascendente","Preço de Custo","Preço de Venda"]
                                 ] = None
                 df_explodido["Permitir avaliações de clientes?"] = 0
                 df_explodido["Posição"] = df_explodido.index + 1
@@ -215,6 +230,8 @@ def scrape_modajeans(base_url):
                 
                 if len(df_cores) <= 1 and len(df_tamanhos)<=1:
                    df_final = df_produto 
+                   pd.set_option('future.no_silent_downcasting', True)                   
+                   df_final = df_final.fillna("").astype(str)
                    df_final["Tipo"] = "simple"   
                 else:
                     df_ref = df_tamanhos if coluna_atributo == "Valores do Atributo 1" else df_cores
@@ -222,16 +239,18 @@ def scrape_modajeans(base_url):
                             df_ref[[coluna_atributo, "Estoque"]],
                             on=coluna_atributo,
                             how="left"
-                        )    
+                        )
+                    pd.set_option('future.no_silent_downcasting', True)
+                    df_final = df_final.fillna("").astype(str)
                     df_final["Em Estoque"] = df_final["Estoque"]     
                     df_final["Tipo"] = "variation"
-                    df_final = pd.concat([df_produto, df_final], ignore_index=True)  
+                    df_final = pd.concat([df_produto, df_final], ignore_index=True)
                 
                 products_data.append(df_final)
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 cont = cont + 1
-                if cont >= 20:
+                if cont >= 1:
                     time.sleep(.3)
                     save_to_sheets(df_final)
                     time.sleep(.3)
