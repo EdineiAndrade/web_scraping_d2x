@@ -154,6 +154,8 @@ def scrape_gruposhopmix(base_url):
                 product_data = extract_product_data(page, url_product)
                 df_imagens = product_data[0]
                 df_produto = pd.DataFrame([product_data[1]])
+                df_produto = df_produto.fillna("")
+                pd.set_option('future.no_silent_downcasting', True)
                 if len(df_imagens) >0:
                     df_produto = pd.concat([df_produto, df_imagens], axis=1)
                 cont = cont + 1

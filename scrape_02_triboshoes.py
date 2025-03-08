@@ -27,8 +27,19 @@ def extract_product_data(page, url_product,nome_categiria):
         description = page.locator('div#tab-description').inner_text().replace('\n','')
         imagem = page.query_selector_all('//*[@class="thumbnails"]//a')
         lista_imagens = list(map(lambda link: link.get_attribute('href'), imagem))
-        lista_imagens = ", ".join(lista_imagens)
+        lista_imagens_str = ", ".join(lista_imagens)
         
+        lista_sem_duplicatas = list(set(lista_imagens))
+
+         # Cria o DataFrame imagem
+        if len(lista_sem_duplicatas) >0:
+            df_imagens = pd.DataFrame(lista_sem_duplicatas)
+            df_imagens = df_imagens.transpose()
+            df_imagens.columns = [f'Imagem {i+1}' for i in range(len(df_imagens.columns))]
+        else:
+            df_imagens =""
+
+
         # Seleciona todas as LABELS com data-qty="0" dentro das divs de opção
         labels = page.locator('div[id^="input-option"] label[data-qty]').all()
 
@@ -45,7 +56,7 @@ def extract_product_data(page, url_product,nome_categiria):
         )
         df_tamanhos["Estoque"] = df_tamanhos["Estoque"].astype(int)  
         df_tamanhos["Valores do Atributo 1"] = df_tamanhos["Valores do Atributo 1"].str.replace('"', '', regex=False)
-        return [df_tamanhos,{
+        return [df_tamanhos,df_imagens,{
             'ID': codigo,
             'Preço promocional': 0,
             "Tipo": "variable",
@@ -77,7 +88,7 @@ def extract_product_data(page, url_product,nome_categiria):
             "Categorias": categoria,
             "Tags": "",
             "Classe de Entrega": "",
-            "Imagens": lista_imagens,
+            "Imagens": lista_imagens_str,
             "Limite de Downloads": "",
             "Dias para Expirar o Download": "",
             "Ascendente": f"id:{codigo}",
@@ -136,21 +147,28 @@ def scrape_triboshoes(base_url):
                 for url_product in product_urls:               
                     product_data = extract_product_data(page, url_product,nome_categiria)
                     df_tamanhos = product_data[0]
-                    df_produto = pd.DataFrame([product_data[1]])
+                    df_imagens = product_data[1]
+                    df_produto = pd.DataFrame([product_data[2]])
                     df_produto["Valores do Atributo 1"] = df_produto["Valores do Atributo 1"].apply(
                         lambda x: ast.literal_eval(x)
                     )
+                    #criar coluna Imagem 1,2,3...
+                    if len(df_imagens) >0:
+                        df_produto = pd.concat([df_produto, df_imagens], axis=1) 
                     # Explodir a coluna "Valores do Atributo 1"   
                     df_explodido = df_produto.explode("Valores do Atributo 1").reset_index(drop=True)
+                    if len(df_imagens) > 0:
+                        numero_imagens = df_imagens.shape[1]
+                        df_explodido.iloc[:, -numero_imagens:] = ""
                     df_explodido = df_explodido.drop(columns=["Estoque"])
                     df_explodido["Tipo"] = "variation"  
                     df_explodido[
                     ["Descrição","Peso (kg)","Comprimento (cm)","Largura (cm)",
-                     "Altura (cm)","Categorias","Visibilidade do atributo 1","Atributo Padrão 1",
+                     "Altura (cm)","Categorias","Visibilidade do Atributo 1","Atributo Padrão 1",
                      "Quantidade Baixa de Estoque","Imagens"]
                                  ] = None
                     df_produto[
-                        ["Classe de Imposto","Ascendente","Preço"]
+                        ["Classe de Imposto","Ascendente","Preço de Custo","Preço de Venda"]
                                ] = None
                     df_explodido["Permitir avaliações de clientes?"] = 0
                     df_explodido["Posição"] = df_explodido.index + 1
@@ -160,13 +178,16 @@ def scrape_triboshoes(base_url):
                         on="Valores do Atributo 1",
                         how="left"
                     )
+                    df_final = df_final.fillna("")
+                    df_produto = df_produto.fillna("")
+                    pd.set_option('future.no_silent_downcasting', True)
                     df_final["Em Estoque"] = df_final["Estoque"]   
                     df_final = pd.concat([df_produto, df_final], ignore_index=True)
                     products_data.append(df_final)
                     df_final = pd.concat(products_data, ignore_index=True)
                     df_final = df_final.fillna("")
                     cont = cont + 1
-                    if cont >= 20:
+                    if cont >= 1:
                         time.sleep(1)
                         save_to_sheets(df_final)
                         time.sleep(1)
