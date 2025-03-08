@@ -151,7 +151,7 @@ def scrape_atacadum(base_url):
                 continue
 
             for url_product in product_urls:
-                url_product = 'smartwatch-w69-ultra-mini-45mm-com-pulseira-extra-e-case-bussola-nfc-temperatura-corporal-jogos/'
+               
                 page.goto(f"{base_url}{url_product}")
                 time.sleep(2)                
                 product_data = extract_product_data(page,nome_categiria)
