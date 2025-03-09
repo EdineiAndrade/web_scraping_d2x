@@ -117,7 +117,7 @@ def extract_product_data(page):
         return None
 
 # Função principal para realizar o scraping
-def florattajoias(base_url):
+def scrape_florattajoias(base_url):
     products_data = []
 
     with sync_playwright() as p:
@@ -125,9 +125,7 @@ def florattajoias(base_url):
         page = browser.new_page()
         page.goto(base_url)
         cont = 0
-        products_data = []
-        # Definição do caminho do arquivo
-        #categoria_ofertas = page.locator('(//*[@class="categorias_desk"]/li/a)[1]').get_attribute('href')
+        products_data = []        
         categorias = page.query_selector_all('(//*[@class="elemento-responsivo"])[4]//a')
         urls = list(map(lambda link: link.get_attribute('href'), categorias))
         urls_categoria =[href for href in urls if href and re.search(r'\d$', href)]

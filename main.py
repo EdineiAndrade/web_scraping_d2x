@@ -2,8 +2,10 @@ from scrape_01_gruposhopmix import scrape_gruposhopmix
 from scrape_02_triboshoes import scrape_triboshoes
 from scrape_03_modajeans import scrape_modajeans
 from scrape_04_atacadum import scrape_atacadum
+from scrape_05_florattajoias import scrape_florattajoias
+from scrape_06_cemstoretec import scrape_06_cemstoretec
 
-from scrape_05_florattajoias import florattajoias
+
 from sheets import save_to_google_sheets
 
 if __name__ == "__main__":
@@ -28,10 +30,15 @@ if __name__ == "__main__":
     # save_to_google_sheets(data, 3)
     # print("Finalizado web scraping atacadum")
 
-    base_url = 'https://www.florattajoias.com.br/'  
-    data = florattajoias(base_url)
-    save_to_google_sheets(data, 4)
-    print("Finalizado web scraping florattajoias")
+    # base_url = 'https://www.florattajoias.com.br/'  
+    # data = scrape_florattajoias(base_url)
+    # save_to_google_sheets(data, 4)
+    # print("Finalizado web scraping florattajoias")
+
+    base_url = 'https://cemstoretec.com.br/'  
+    data = scrape_06_cemstoretec(base_url)
+    save_to_google_sheets(data, 5)
+    print("Finalizado web scraping cemstoretec")
     
 
     
