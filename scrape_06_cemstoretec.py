@@ -93,7 +93,8 @@ def extract_product_data(page,product_id):
             description_html = description_html_2
             if len(description_html_2) > 50000:
                 description_html = ""
-
+        else:
+            description_html = description_html_1
         try:
             peso = page.locator('//div[3]/section[2]/div[2]/div/div/section/div[2]/div/div/div[1]/div/div/div[2]/table/tbody/tr[1]/td').inner_text(timeout=200)
             peso = str(peso.replace(' kg','').replace(',','.'))
@@ -106,9 +107,9 @@ def extract_product_data(page,product_id):
             resultado = re.match(regex, dimensoes)
             largura, comprimento, altura,cm = resultado.group(1),resultado.group(2),resultado.group(3),dimensoes[-2:]
         except:
-            largura, comprimento, altura,cm = ""
+            largura = comprimento = altura = cm = ""
         if cm != 'cm' or largura == "" or comprimento== "" or altura == "":
-            largura, comprimento, altura = ""
+            largura = comprimento = altura = ""
         
         return [df_imagens,{
             'ID': codigo,
@@ -166,7 +167,7 @@ def extract_product_data(page,product_id):
             "Visibilidade do Atributo 2": 0,
             "Atributo Global 2": "",
             "Atributo Padrão 2": "",
-            "Galpão": " Galpão 5"
+            "Galpão": " Galpão 6"
         }]
 
 
@@ -213,7 +214,7 @@ def scrape_06_cemstoretec(base_url):
                 except:
                     continue
                 for product_id, url_product in zip(product_ids,product_urls):
-                    #url_product = 'https://cemstoretec.com.br/produto/kemei-homens-acabamento-profissional-maquina-de-corte-cabelo/'    
+                    #url_product = 'https://cemstoretec.com.br/produto/alexa-echo-show-5-smart-speaker/'    
                     page.goto(f"{url_product}")
                     time.sleep(1)   
                     product_data = extract_product_data(page, product_id)
