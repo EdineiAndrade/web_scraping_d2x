@@ -22,8 +22,8 @@ def extract_product_data(page, url_product,nome_categiria):
         codigo = url_product.split("-")[-1].replace('.html','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
         preco = page.locator('(//*[@class="list-unstyled"])[6]/li/h2').inner_text().replace('R$','').replace('.','')
-        preco = round(float(preco.replace(',', '.')), 2)
-        preco_venda = round((preco * 1.1),2)
+        preco_custo = str(round(float(preco.replace(',', '.')), 2))
+        preco_venda = str(round(float(preco_custo)* 1.1,2))
         description = page.locator('div#tab-description').inner_text().replace('\n','')
         imagem = page.query_selector_all('//*[@class="thumbnails"]//a')
         lista_imagens = list(map(lambda link: link.get_attribute('href'), imagem))
@@ -83,7 +83,7 @@ def extract_product_data(page, url_product,nome_categiria):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço de Custo": preco,
+            "Preço de Custo": preco_custo,
             "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
@@ -187,7 +187,7 @@ def scrape_triboshoes(base_url):
                     df_final = pd.concat(products_data, ignore_index=True)
                     df_final = df_final.fillna("")
                     cont = cont + 1
-                    if cont >= 1:
+                    if cont >= 2:
                         time.sleep(1)
                         save_to_sheets(df_final)
                         time.sleep(1)

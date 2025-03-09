@@ -19,14 +19,14 @@ def extract_product_data(page,nome_categiria):
         categoria = nome_categiria.title()
         print(f"Processando categoria: {categoria} | produto:{produto}")
         try:
-            marca = page.locator('(//*[@class="codigo_produto"]/span)[2]').inner_text(timeout=200)
+            marca = page.locator('(//*[@class="codigo_produto"]/span)[2]').inner_text(timeout=200).replace('Marca: ','')
         except:
             marca = ""
         codigo = page.locator('(//*[@class="codigo_produto"]/span)[1]').inner_text().replace('Cód.: ','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
         preco = page.locator('//*[@class="valor"]/span[1]').inner_text().replace('R$','').replace('.','')
-        preco = round(float(preco.replace(',', '.')), 2)
-        preco_venda = round((preco * 1.1),2)
+        preco_custo = str(round(float(preco.replace(',', '.')), 2))
+        preco_venda = str(round(float(preco_custo)* 1.1,2))
         imagem = page.query_selector_all('//*[@class="slick-track"]/div/img')
         lista_imagens = list(map(lambda link: link.get_attribute('src'), imagem))     
         lista_sem_duplicatas = list(set(lista_imagens))
@@ -53,7 +53,7 @@ def extract_product_data(page,nome_categiria):
                 lista_cores = list(map(lambda cor:cor.get_attribute("data-original-title"), variacao_cor))
                 cores_str = ", ".join(lista_cores)
                 #df_cores = pd.DataFrame(lista_cores, columns=["Valores do Atributo 2"])
-                cor = "Cor Personalizada"
+                cor = "Cor"
                 atributo_global_1 = 1
                 cor_padrao = lista_cores[0]
             else:
@@ -91,7 +91,7 @@ def extract_product_data(page,nome_categiria):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço de Custo": preco,
+            "Preço de Custo": preco_custo,
             "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
@@ -190,7 +190,7 @@ def scrape_atacadum(base_url):
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 cont = cont + 1
-                if cont >= 1:
+                if cont >= 5:
                     time.sleep(.3)
                     save_to_sheets(df_final)
                     time.sleep(.3)

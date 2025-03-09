@@ -23,8 +23,8 @@ def extract_product_data(page, url_product,nome_categiria):
         print(f"Processando categoria: {categoria} | produto:{produto}")
         codigo = page.locator('//*[@class="page-header  "]//h1').get_attribute('data-store').replace('product-name-','')
         preco = page.locator('//*[@id="price_display"]').inner_text().replace('R$','').replace('.','')
-        preco = round(float(preco.replace(',', '.')), 2)
-        preco_venda = round((preco * 1.1),2)
+        preco_custo = str(round(float(preco.replace(',', '.')), 2))
+        preco_venda = str(round(float(preco_custo)* 1.1,2))
         imagem = page.query_selector_all('//*[@class="swiper-wrapper"]//img')
         lista_imagens = list(map(lambda link: "https:" + link.get_attribute('srcset').split(',')[-1].split()[0] 
                          if link.get_attribute('srcset') else "", imagem))
@@ -112,7 +112,7 @@ def extract_product_data(page, url_product,nome_categiria):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço de Custo": preco,
+            "Preço de Custo": preco_custo,
             "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
@@ -250,7 +250,7 @@ def scrape_modajeans(base_url):
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 cont = cont + 1
-                if cont >= 1:
+                if cont >= 2:
                     time.sleep(.3)
                     save_to_sheets(df_final)
                     time.sleep(.3)

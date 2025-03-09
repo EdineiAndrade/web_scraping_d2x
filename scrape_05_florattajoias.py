@@ -22,10 +22,10 @@ def extract_product_data(page):
         print(f"Processando categoria: {categoria} | produto:{produto}")
         
         codigo = page.locator('//*[@class="produto-infos"]/p[2]').inner_text().replace('Ref.: ','')        
-        preco_str = page.locator('//*[@class="v"]').inner_text().replace('.','').replace(',','.')
-        preco_venda = str(round(float(preco_str)* 1.1,2))
-        imagem = page.query_selector_all('//*[@class="slick-track"]//img')
-        lista_imagens = list(map(lambda link: link.get_attribute('src'), imagem))     
+        preco_custo = page.locator('//*[@class="v"]').inner_text().replace('.','').replace(',','.')
+        preco_venda = str(round(float(preco_custo)* 1.1,2))
+        imagem = page.query_selector_all('//*[@id="fotosProdutos"]//a')
+        lista_imagens = list(map(lambda link: link.get_attribute('data-image'), imagem))     
         lista_sem_duplicatas = list(set(lista_imagens))
         lista_imagens_str = ", ".join(lista_sem_duplicatas)
          
@@ -82,7 +82,7 @@ def extract_product_data(page):
             "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço de Custo": preco_str,
+            "Preço de Custo": preco_custo,
             "Preço de Venda": preco_venda,
             "Categorias": categoria,
             "Tags": "",
@@ -157,7 +157,7 @@ def scrape_florattajoias(base_url):
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 cont = cont + 1
-                if cont >= 1:
+                if cont >= 5:
                     time.sleep(.3)
                     save_to_sheets(df_final)
                     time.sleep(.3)

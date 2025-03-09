@@ -16,7 +16,11 @@ def extract_product_data(page,product_id):
         nome_categiria = page.locator('//*[@class="woocommerce-breadcrumb"]/a[2]').inner_text().title()
         produto = page.locator('//*[contains(@class, "product_title")]').inner_text().title()
         print(f"Processando categoria: {nome_categiria} | produto: {produto}")
-        em_estoque = page.locator('//div[3]/section[1]/div[2]/div[2]/div/div[4]/div/p/b').inner_text(timeout=500)
+        try:
+            em_estoque = page.locator('//div[3]/section[1]/div[2]/div[2]/div/div[4]/div/p/b').inner_text(timeout=500)
+        except:
+            em_estoque = "0"
+            
         if em_estoque == "Fora de estoque":
             estoque,e_estoque = "0"
         else:
@@ -36,8 +40,8 @@ def extract_product_data(page,product_id):
         except:
             ncm = "" 
         
-        preco_str = page.locator('(//*[@class="woocommerce-Price-amount amount"]/bdi)[1]').inner_text().replace('R$','').replace('.','').replace(',','.')
-        preco_venda = str(round(float(preco_str)* 1.1,2))
+        preco_custo = page.locator('(//*[@class="woocommerce-Price-amount amount"]/bdi)[1]').inner_text().replace('R$','').replace('.','').replace(',','.')
+        preco_venda = str(round(float(preco_custo)* 1.1,2))
         imagem = page.query_selector_all('//*[@class="woocommerce-product-gallery__wrapper"]//a')
         lista_imagens = list(map(lambda link: link.get_attribute('href'), imagem))     
         lista_sem_duplicatas = list(set(lista_imagens))
@@ -141,7 +145,7 @@ def extract_product_data(page,product_id):
            "Permitir avaliações de clientes?": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço de Custo": preco_str,
+            "Preço de Custo": preco_custo,
             "Preço de Venda": preco_venda,
             "Categorias": nome_categiria,
             "Tags": "",
@@ -258,7 +262,7 @@ def scrape_06_cemstoretec(base_url):
                     df_final = pd.concat(products_data, ignore_index=True)
                     df_final = df_final.fillna("")
                     cont = cont + 1
-                    if cont >= 1:
+                    if cont >= 5:
                         time.sleep(.3)
                         save_to_sheets(df_final)
                         time.sleep(.3)

@@ -32,8 +32,8 @@ def extract_product_data(page, url_product):
         ncm = page.query_selector('#ncm').get_attribute("value")   
 
         preco = page.query_selector('#sale_value').get_attribute("value")
-        preco = round(float(preco), 2)
-        preco_venda = round((preco * 1.1),2)
+        preco_custo = str(round(float(preco), 2))
+        preco_venda = str(round(float(preco_custo)* 1.1,2))
         estoque = page.query_selector('#stock').get_attribute("value")
         peso = page.query_selector('#weight').get_attribute("value") 
         altura = int(float(page.query_selector('#height').get_attribute("value")) * 100)
@@ -85,7 +85,7 @@ def extract_product_data(page, url_product):
             "Permitir Avaliações de Clientes": 1,
             "Nota de Compra": "",
             "Preço Promocional": "",
-            "Preço de Custo": preco,
+            "Preço de Custo": preco_custo,
             "Preço de Venda": preco_venda,
             "Categorias": "",
             "Tags": "",
@@ -163,7 +163,7 @@ def scrape_gruposhopmix(base_url):
                 df_final = pd.concat(products_data, ignore_index=True)
                 df_final = df_final.fillna("")
                 
-                if cont >= 1:
+                if cont >= 2:
                         time.sleep(1)
                         save_to_sheets(df_final)
                         time.sleep(1)
