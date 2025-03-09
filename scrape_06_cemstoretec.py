@@ -12,11 +12,11 @@ def save_to_sheets(data):
 def extract_product_data(page,product_id):
     try:
         # Extrair informações usando os seletores fornecidos
-        time.sleep(.5)
+        time.sleep(2)
         nome_categiria = page.locator('//*[@class="woocommerce-breadcrumb"]/a[2]').inner_text().title()
         produto = page.locator('//*[contains(@class, "product_title")]').inner_text().title()
         print(f"Processando categoria: {nome_categiria} | produto: {produto}")
-        em_estoque = page.locator('//div[3]/section[1]/div[2]/div[2]/div/div[4]/div/p/b').inner_text()
+        em_estoque = page.locator('//div[3]/section[1]/div[2]/div[2]/div/div[4]/div/p/b').inner_text(timeout=500)
         if em_estoque == "Fora de estoque":
             estoque,e_estoque = "0"
         else:
@@ -77,12 +77,23 @@ def extract_product_data(page,product_id):
         description = " ".join([item for item in lista_limpa if item.strip()])         
 
         try:
-            description_html = page.locator('//div[3]/section[2]/div[2]').inner_html(timeout=100)
-            description_html = description_html.replace('\t', ' ').replace('\n', '<br>')
+            description_html_1 = page.locator('//div[3]/section[2]/div[2]').inner_html(timeout=100)           
+            description_html_1 = description_html_1.replace('\t', ' ').replace('\n', '<br>')            
         except Exception as e:
             print(f"Erro ao extrair dados do produto: {e}")
-            description_html = ""
-        
+            description_html_1 = ""
+        try:            
+            description_html_2 = page.locator('//div[3]/section[2]/div[2]/div/div/section/div[2]/div').inner_html(timeout=100)
+            description_html_2 = description_html_2.replace('\t', ' ').replace('\n', '<br>')
+        except Exception as e:
+            print(f"Erro ao extrair dados do produto: {e}")
+            description_html_2 = ""
+       
+        if len(description_html_1) > 50000:
+            description_html = description_html_2
+            if len(description_html_2) > 50000:
+                description_html = ""
+
         try:
             peso = page.locator('//div[3]/section[2]/div[2]/div/div/section/div[2]/div/div/div[1]/div/div/div[2]/table/tbody/tr[1]/td').inner_text(timeout=200)
             peso = str(peso.replace(' kg','').replace(',','.'))
@@ -95,8 +106,8 @@ def extract_product_data(page,product_id):
             resultado = re.match(regex, dimensoes)
             largura, comprimento, altura,cm = resultado.group(1),resultado.group(2),resultado.group(3),dimensoes[-2:]
         except:
-            largura, comprimento, altura = "5","15","5"
-        if cm != 'cm':
+            largura, comprimento, altura,cm = ""
+        if cm != 'cm' or largura == "" or comprimento== "" or altura == "":
             largura, comprimento, altura = ""
         
         return [df_imagens,{
@@ -202,13 +213,18 @@ def scrape_06_cemstoretec(base_url):
                 except:
                     continue
                 for product_id, url_product in zip(product_ids,product_urls):
-            
+                    #url_product = 'https://cemstoretec.com.br/produto/kemei-homens-acabamento-profissional-maquina-de-corte-cabelo/'    
                     page.goto(f"{url_product}")
-                    time.sleep(.5)   
+                    time.sleep(1)   
                     product_data = extract_product_data(page, product_id)
-                    df_imagens = product_data[0]
-                    df_produto = pd.DataFrame([product_data[1]])     
-                            
+                   
+                    try:
+                        df_imagens = product_data[0]                    
+                        df_produto = pd.DataFrame([product_data[1]])     
+                    except:
+                        print(url_product)
+                        continue
+                        
                     if len(df_imagens) >0:
                         df_produto = pd.concat([df_produto, df_imagens], axis=1)
 
