@@ -7,15 +7,13 @@ import locale
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 # Função para salvar os dados em um arquivo Excel
-def save_to_sheets(data):
+def save_to_sheets(data):    
     if isinstance(data, dict):
         df = pd.DataFrame.from_dict(data, orient="index").T
     else:    
         df = pd.DataFrame(data)
-    #df.to_excel(filename, index=False)
-    #print(f"Dados salvos em {filename}")
     save_to_google_sheets(df,0)
-
+    return df
 # Função para extrair dados de um produto na página de detalhes
 def extract_product_data(page, url_product):
 
@@ -141,7 +139,6 @@ def scrape_gruposhopmix(base_url):
         page.locator('//*[@class="btn btn-primary"]').click()
         page.locator('(//*[@class="menu-text"])[6]').click()
 
-        
         for n in range(1,129):
             page.goto(f"https://app.gruposhopmix.com.br/dashboard/catalog?page={n}")
             
@@ -161,13 +158,14 @@ def scrape_gruposhopmix(base_url):
                 cont = cont + 1
                 products_data.append(df_produto)
                 df_final = pd.concat(products_data, ignore_index=True)
-                df_final = df_final.fillna("")
+                df_final = df_final.fillna("")              
+
                 
-                if cont >= 2:
+                if cont >= 20 or n == 128:
                         time.sleep(1)
                         save_to_sheets(df_final)
-                        time.sleep(1)
+                        time.sleep(1)            
                         cont = 0
-        browser.close()
-
-        return products_data
+            return df_final
+        browser.close()           
+    return "Fim do Scrape" 

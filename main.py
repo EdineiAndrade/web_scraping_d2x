@@ -10,10 +10,9 @@ from sheets import save_to_google_sheets
 
 if __name__ == "__main__":
 
-    # base_url = 'https://app.gruposhopmix.com.br/login'
-    # data = scrape_gruposhopmix(base_url)
-    # save_to_google_sheets(data,0)
-    # print("Finalizado web scraping gruposhopmix")
+    base_url = 'https://app.gruposhopmix.com.br/login'
+    data = scrape_gruposhopmix(base_url)    
+    print("Finalizado web scraping gruposhopmix")
 
     # base_url = 'https://triboshoes.com.br/'  
     # data = scrape_triboshoes(base_url)
@@ -35,10 +34,10 @@ if __name__ == "__main__":
     # save_to_google_sheets(data, 4)
     # print("Finalizado web scraping florattajoias")
 
-    base_url = 'https://cemstoretec.com.br/'  
-    data = scrape_06_cemstoretec(base_url)
-    save_to_google_sheets(data, 5)
-    print("Finalizado web scraping cemstoretec")
+    # base_url = 'https://cemstoretec.com.br/'  
+    # data = scrape_06_cemstoretec(base_url)
+    # save_to_google_sheets(data, 5)
+    # print("Finalizado web scraping cemstoretec")
     
 
     
