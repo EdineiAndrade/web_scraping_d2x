@@ -166,6 +166,6 @@ def scrape_gruposhopmix(base_url):
                         save_to_sheets(df_final)
                         time.sleep(1)            
                         cont = 0
-            return df_final
         browser.close()           
+        return df_final
     return "Fim do Scrape" 

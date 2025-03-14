@@ -5,8 +5,8 @@ from scrape_04_atacadum import scrape_atacadum
 from scrape_05_florattajoias import scrape_florattajoias
 from scrape_06_cemstoretec import scrape_06_cemstoretec
 
-
 from sheets import save_to_google_sheets
+
 
 if __name__ == "__main__":
 
