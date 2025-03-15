@@ -73,17 +73,27 @@ def extract_product_data(page, url_product,nome_categiria):
             label_tamanho = page.query_selector_all('(//*[@id="product_form"]/div/div)[1]/a')
         else:
             label_tamanho = page.query_selector_all('//*[@id="product_form"]/div/div[2]//a')    
-        list_tamanhos = list(map(lambda t: {
-            "Valores do Atributo 1": t.get_attribute("title"),
-            "Estoque": 0 if "btn-variant-no-stock" in t.get_attribute("class") else 1
-        }, label_tamanho)) 
+        
+        if label_tamanho:
+            list_tamanhos = list(map(lambda t: {
+                "Valores do Atributo 1": t.get_attribute("title"),
+                "Estoque": 0 if "btn-variant-no-stock" in t.get_attribute("class") else 1
+            }, label_tamanho)) 
 
-        tamanhos = [item['Valores do Atributo 1'] for item in list_tamanhos]
-        tamanhos_str = ", ".join(tamanhos)        
-        df_tamanhos = pd.DataFrame(list_tamanhos)
-        df_tamanhos["Valores do Atributo 1"] = df_tamanhos["Valores do Atributo 1"].astype(str)
-        tamanho_meio = tamanhos_str.split(",")[int(len(tamanhos_str.split(","))/2)-1].replace("'","").replace('"','').replace(' ','')
-    
+            tamanhos = [item['Valores do Atributo 1'] for item in list_tamanhos]
+            tamanhos_str = ", ".join(tamanhos)        
+            df_tamanhos = pd.DataFrame(list_tamanhos)
+            df_tamanhos["Valores do Atributo 1"] = df_tamanhos["Valores do Atributo 1"].astype(str)
+            tamanho_meio = tamanhos_str.split(",")[int(len(tamanhos_str.split(","))/2)-1].replace("'","").replace('"','').replace(' ','')
+            atributo1 = "Tamanho"
+            if len(df_tamanhos) <=0:
+               atributo1 = tamanho_meio = tamanhos_str = df_tamanhos = " "
+        else:
+            atributo1 = tamanho_meio = tamanhos_str = df_tamanhos = " "
+        if df_cores is None:
+                df_cores = [] 
+        if df_tamanhos is None:
+            f_cores = []
         return [df_tamanhos,df_cores,df_imagens,{
             'ID': codigo,
             'SKU':sku,
@@ -128,7 +138,7 @@ def extract_product_data(page, url_product,nome_categiria):
             "Texto do Botão": "",
             "Posição": 0,
             "Brands": "",
-            "Nome do Atributo 1": "Tamanho",
+            "Nome do Atributo 1": atributo1,
             "Valores do Atributo 1": tamanhos_str,
             "Visibilidade do Atributo 1": 0,
             "Atributo Global 1": 1,
@@ -179,8 +189,8 @@ def scrape_modajeans(base_url):
                     esgotado = 'display:none'
                 if esgotado is None or 'display:none' not in esgotado:
                     continue
-                product_data = extract_product_data(page, url_product,nome_categiria)
-                df_tamanhos = product_data[0]
+                product_data = extract_product_data(page, url_product,nome_categiria)    
+                df_tamanhos = product_data[0]          
                 df_cores = product_data[1]
                 df_imagens = product_data[2]               
                 df_produto = pd.DataFrame([product_data[3]])    
