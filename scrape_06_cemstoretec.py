@@ -186,10 +186,10 @@ def scrape_06_cemstoretec(base_url):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)  # headless=False para ver o navegador em ação
         page = browser.new_page()
-        page.goto(base_url,timeout=100*10000)
+        page.goto(base_url,timeout=100000)
         cont = 0
         products_data = []        
-        categorias = page.query_selector_all("a.elementor-item")
+        categorias = page.query_selector_all("//main/div/div[1]/section[3]/div[2]/div/div/section/div[2]/div/div/div[2]/div/div/div/div/div[1]/div/div/div/div/a")
         urls = list(map(lambda link: link.get_attribute('href'), categorias))
         urls_categoria = list(set(urls[:48]))
     

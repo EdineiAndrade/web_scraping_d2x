@@ -19,10 +19,10 @@ if __name__ == "__main__":
     # save_to_google_sheets(data,1)    
     # print("Finalizado web scraping triboshoes")
     
-    base_url = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/?mpage=3'  
-    data = scrape_modajeans(base_url)
-    save_to_google_sheets(data,2)
-    print("Finalizado web scraping atacadodamodajeans")
+    # base_url = 'https://atacadodamodajeans.lojavirtualnuvem.com.br/produtos/?mpage=3'  
+    # data = scrape_modajeans(base_url)
+    # save_to_google_sheets(data,2)
+    # print("Finalizado web scraping atacadodamodajeans")
 
     # base_url = 'https://www.atacadum.com.br/'  
     # data = scrape_atacadum(base_url)
@@ -34,10 +34,10 @@ if __name__ == "__main__":
     # save_to_google_sheets(data, 4)
     # print("Finalizado web scraping florattajoias")
 
-    # base_url = 'https://cemstoretec.com.br/'  
-    # data = scrape_06_cemstoretec(base_url)
-    # save_to_google_sheets(data, 5)
-    # print("Finalizado web scraping cemstoretec")
+    base_url = 'https://cemstoretec.com.br/'  
+    data = scrape_06_cemstoretec(base_url)
+    save_to_google_sheets(data, 5)
+    print("Finalizado web scraping cemstoretec")
     
 
     
