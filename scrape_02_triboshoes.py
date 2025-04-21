@@ -21,14 +21,8 @@ def extract_product_data(page, url_product,nome_categiria):
         print(f"Processando categoria: {categoria} | produto:{produto}")
         codigo = url_product.split("-")[-1].replace('.html','')
         codigo = int("".join(re.findall(r'\d+', codigo)))
-        preco_varejo = page.locator('(//*[@class="list-unstyled"])[6]/li/h2').inner_text().replace('R$','').replace('.','')
-        preco_atacado = page.locator('//*[@id="content"]/div[1]/div[2]/ul[1]/div/p').inner_text().replace('R$','').replace('.','')
-        preco_varejo = round(float(preco_varejo.replace(',', '.')), 2)
-        preco_atacado = round(float(preco_atacado.replace(',', '.')), 2)
-        if float(preco_atacado) > 0 and float(preco_atacado) < float(preco_varejo):
-            preco = preco_atacado
-        else:
-            preco = preco_varejo
+        preco = page.locator('(//*[@class="list-unstyled"])[6]/li/h2').inner_text().replace('R$','').replace('.','')       
+        preco = round(float(preco.replace(',', '.')), 2)      
         preco_custo = preco
         preco_venda = str(round(float(preco_custo)* 1.1,2))
         description = page.locator('div#tab-description').inner_text().replace('\n','')
@@ -131,6 +125,12 @@ def scrape_triboshoes(base_url):
         browser = p.chromium.launch(headless=False)  # headless=False para ver o navegador em ação
         page = browser.new_page()
         page.goto(base_url)
+        page.goto("https://www.triboshoes.com.br/acessar.html")
+        time.sleep(1)
+        page.locator('//*[@id="input-email"]').fill("estevaodutra.pmss@gmail.com")
+        page.locator('//*[@id="input-password"]').fill("carvalho159")
+        page.locator('//*[@id="content"]/div/div[2]/div/form/input').click()
+        time.sleep(1)
         cont = 0
         products_data = []
         # Definição do caminho do arquivo
