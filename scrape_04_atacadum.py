@@ -155,6 +155,8 @@ def scrape_atacadum(base_url):
                 page.goto(f"{base_url}{url_product}")
                 time.sleep(2)                
                 product_data = extract_product_data(page,nome_categiria)
+                if product_data is None:
+                    continue
                 df_imagens = product_data[0]
                 df_produto = pd.DataFrame([product_data[1]])     
                          
