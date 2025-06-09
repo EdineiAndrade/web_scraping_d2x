@@ -5,6 +5,7 @@ from scrape_04_atacadum import scrape_atacadum
 from scrape_05_florattajoias import scrape_florattajoias
 from scrape_06_cemstoretec import scrape_06_cemstoretec
 from scrape_07_c7_drop import scrape_c7_drop
+from scrape_08_feiradamadrugada import scrape_08_feiram
 
 from sheets import save_to_google_sheets
 
@@ -40,7 +41,14 @@ if __name__ == "__main__":
     # save_to_google_sheets(data, 5)
     # print("Finalizado web scraping cemstoretec")
 
-    base_url = 'https://c7drop.com.br/'
-    data = scrape_c7_drop(base_url)
-    save_to_google_sheets(data, 6)
-    print("Finalizado web scraping cemstoretec")
+    # base_url = 'https://c7drop.com.br/'
+    # data = scrape_c7_drop(base_url)
+    # save_to_google_sheets(data, 6)
+    # print("Finalizado web scraping c7drop")
+
+    base_url = 'https://www.feiradamadrugadasp.com.br'
+    data = scrape_08_feiram(base_url)
+    save_to_google_sheets(data, 7)
+    print("Finalizado web scraping feiradamadrugadasp")
+
+    

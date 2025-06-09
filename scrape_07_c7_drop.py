@@ -262,7 +262,7 @@ def scrape_c7_drop(base_url):
                     df_final = pd.concat(products_data, ignore_index=True)
                     df_final = df_final.fillna("")
                     cont = cont + 1
-                    if cont >= 5:
+                    if cont >= 25:
                         time.sleep(.3)
                         save_to_sheets(df_final)
                         time.sleep(.3)
